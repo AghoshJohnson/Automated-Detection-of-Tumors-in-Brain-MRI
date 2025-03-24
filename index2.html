@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 🔹 Background Image */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('https://assets.onecompiler.app/42s5gdpp5/43a7jyqax/WhatsApp%20Image%202025-02-26%20at%2012.25.53_b54a2b0a.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* 🔹 Content Box */
+        .content {
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        /* 🔹 Button & Input Styles */
+        button, input {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        #results {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* 🔹 Uploaded Image Preview */
+        #imagePreview {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Brain Tumor Detection</h1>
+        <p>Upload an image to check if it has a tumor.</p>
+        
+        <input type="file" id="fileInput" accept="image/*">
+        <br>
+        <img id="imagePreview" src="#" alt="Uploaded Image" style="display: none; width: 100%; max-height: 300px;">
+        <br>
+        <button id="predictButton">Predict</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $("#fileInput").change(function(event){
+                var reader = new FileReader();
+                reader.onload = function(){
+                    var output = document.getElementById("imagePreview");
+                    output.src = reader.result;
+                    output.style.display = "block";
+                }
+                reader.readAsDataURL(event.target.files[0]);
+            });
+
+            $("#predictButton").click(function(){
+                var file = $("#fileInput")[0].files[0];
+
+                if (!file) {
+                    alert("Please select an image.");
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append("file", file);
+
+                $.ajax({
+                    url: "/predict",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.error) {
+                            $("#results").html("<p style='color: red;'>" + response.error + "</p>");
+                        } else {
+                            $("#results").html("<h2>Prediction: " + response.prediction + "</h2><p>Confidence: " + (response.confidence * 100).toFixed(2) + "%</p>");
+                        }
+                    },
+                    error: function() {
+                        alert("Error in prediction. Make sure the Flask server is running.");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
